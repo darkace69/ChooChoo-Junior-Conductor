@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M0,0h108v108h-108z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="12"
+                android:startY="12"
+                android:endX="96"
+                android:endY="96"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#00BCD4" />
+                <item android:offset="0.4" android:color="#0288D1" />
+                <item android:offset="1.0" android:color="#0D47A1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Background track rails -->
+    <path
+        android:fillColor="#26FFFFFF"
+        android:pathData="M20,92 L88,92 L92,97 L16,97 Z" />
+    <path
+        android:fillColor="#33FFFFFF"
+        android:pathData="M24,98 L84,98 L86,102 L22,102 Z" />
+</vector>

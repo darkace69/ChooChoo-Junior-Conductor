@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Puffy Steam Clouds -->
+    <path
+        android:fillColor="#E1F5FE"
+        android:pathData="M44,22 A6,6 0 1,1 56,22 A5,5 0 0,1 62,27 A6,6 0 1,1 48,30 A6,6 0 0,1 44,22 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,28 A5,5 0 1,1 48,27 A5,5 0 0,1 52,32 A5,5 0 1,1 40,34 A4,4 0 0,1 38,28 Z" />
+
+    <!-- Chimney / Smokestack -->
+    <path
+        android:fillColor="#37474F"
+        android:pathData="M49,32 L59,32 L61,42 L47,42 Z" />
+    <path
+        android:fillColor="#FFB300"
+        android:pathData="M46,31 L62,31 L62,34 L46,34 Z" />
+
+    <!-- Train Cab Roof -->
+    <path
+        android:fillColor="#C62828"
+        android:pathData="M30,42 Q54,36 78,42 L78,47 L30,47 Z" />
+
+    <!-- Locomotive Boiler Body -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M33,47 L75,47 L77,74 L31,74 Z" />
+
+    <!-- Cab Front Window -->
+    <path
+        android:fillColor="#81D4FA"
+        android:pathData="M39,50 L69,50 L69,60 L39,60 Z" />
+    <path
+        android:fillColor="#E0F7FA"
+        android:pathData="M42,52 L52,52 L48,58 L40,58 Z" />
+
+    <!-- Golden Headlight -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M46,63 A8,8 0 1,0 62,63 A8,8 0 1,0 46,63 Z" />
+    <path
+        android:fillColor="#FFF9C4"
+        android:pathData="M49,63 A5,5 0 1,0 59,63 A5,5 0 1,0 49,63 Z" />
+
+    <!-- Front Bumper / Cowcatcher (Grille) -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M27,74 L81,74 L83,80 L25,80 Z" />
+    <path
+        android:fillColor="#263238"
+        android:pathData="M31,80 L77,80 L82,86 L26,86 Z" />
+    <!-- Cowcatcher stripes -->
+    <path
+        android:fillColor="#ECEFF1"
+        android:pathData="M52,80 L56,80 L56,85 L52,85 Z" />
+    <path
+        android:fillColor="#ECEFF1"
+        android:pathData="M42,80 L45,80 L43,85 L40,85 Z" />
+    <path
+        android:fillColor="#ECEFF1"
+        android:pathData="M63,80 L66,80 L68,85 L65,85 Z" />
+
+    <!-- Train Wheels (Front) -->
+    <path
+        android:fillColor="#37474F"
+        android:pathData="M27,82 A5,5 0 1,0 37,82 A5,5 0 1,0 27,82 Z" />
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M30,82 A2,2 0 1,0 34,82 A2,2 0 1,0 30,82 Z" />
+
+    <path
+        android:fillColor="#37474F"
+        android:pathData="M71,82 A5,5 0 1,0 81,82 A5,5 0 1,0 71,82 Z" />
+    <path
+        android:fillColor="#B0BEC5"
+        android:pathData="M74,82 A2,2 0 1,0 78,82 A2,2 0 1,0 74,82 Z" />
+
+    <!-- Front Whistle / Bell -->
+    <path
+        android:fillColor="#FFA000"
+        android:pathData="M66,38 A3,3 0 1,0 72,38 A3,3 0 1,0 66,38 Z" />
+</vector>

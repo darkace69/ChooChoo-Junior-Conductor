@@ -1,0 +1,8 @@
+{
+  "name": "ChooChoo Junior Conductor",
+  "description": "Drive trains through scenic landscapes, control speed on hills and curves, explore secrets, make safe station stops, and upgrade your train!",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
