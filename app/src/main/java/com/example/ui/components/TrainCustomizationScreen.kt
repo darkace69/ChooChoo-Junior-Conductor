@@ -381,9 +381,21 @@ fun TrainCustomizationScreen(
           }
         }
         2 -> {
-          // Smoke Styles
-          Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            TrackWorldData.availableSmokes.forEach { smoke ->
+          // Smoke Styles & Types (Bubbles, Hearts, Stars, and Colors)
+          val specialTypes = TrackWorldData.availableSmokes.filter { it.type != com.example.model.SmokeType.PUFFS }
+          val coloredPuffs = TrackWorldData.availableSmokes.filter { it.type == com.example.model.SmokeType.PUFFS }
+
+          Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            // Header: Special Types (Bubbles, Stars, Music, etc.)
+            Text(
+              text = "🫧 Special Smoke Types (Bubbles, Magic & Music):",
+              color = Color(0xFFFFD54F),
+              fontSize = 13.sp,
+              fontWeight = FontWeight.Bold,
+              modifier = Modifier.padding(top = 4.dp)
+            )
+
+            specialTypes.forEach { smoke ->
               val isEquipped = profile.selectedSmokeId == smoke.id
               val isUnlocked = unlockedSmokes.contains(smoke.id)
               val canAfford = profile.goldenTickets >= smoke.cost
@@ -401,7 +413,8 @@ fun TrainCustomizationScreen(
                     if (isUnlocked || canAfford) {
                       onBuyAndEquipSmoke(smoke.id, smoke.cost)
                     }
-                  },
+                  }
+                  .testTag("smoke_option_${smoke.id}"),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF263238))
               ) {
                 Row(
@@ -411,16 +424,152 @@ fun TrainCustomizationScreen(
                   verticalAlignment = Alignment.CenterVertically,
                   horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                  Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = smoke.iconEmoji, fontSize = 26.sp)
+                  Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                  ) {
+                    Box(
+                      modifier = Modifier
+                        .size(42.dp)
+                        .background(Color(0xFF37474F), CircleShape)
+                        .border(2.dp, smoke.primaryColor, CircleShape),
+                      contentAlignment = Alignment.Center
+                    ) {
+                      Text(text = smoke.iconEmoji, fontSize = 24.sp)
+                    }
                     Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                      Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                          text = smoke.name,
+                          color = Color.White,
+                          fontSize = 13.sp,
+                          fontWeight = FontWeight.Bold
+                        )
+                        if (smoke.id == "soap_bubbles") {
+                          Spacer(modifier = Modifier.width(6.dp))
+                          Box(
+                            modifier = Modifier
+                              .background(Color(0xFF00838F), RoundedCornerShape(4.dp))
+                              .padding(horizontal = 4.dp, vertical = 2.dp)
+                          ) {
+                            Text("BUBBLES", color = Color.White, fontSize = 8.sp, fontWeight = FontWeight.Black)
+                          }
+                        }
+                      }
+                      if (smoke.description.isNotEmpty()) {
+                        Text(
+                          text = smoke.description,
+                          color = Color(0xFFB0BEC5),
+                          fontSize = 10.sp,
+                          lineHeight = 13.sp
+                        )
+                      }
+                    }
+                  }
+
+                  Spacer(modifier = Modifier.width(8.dp))
+
+                  Box(
+                    modifier = Modifier
+                      .background(
+                        when {
+                          isEquipped -> Color(0xFF43A047)
+                          isUnlocked -> Color(0xFF0288D1)
+                          canAfford -> Color(0xFFFFB300)
+                          else -> Color(0xFF455A64)
+                        },
+                        RoundedCornerShape(8.dp)
+                      )
+                      .padding(horizontal = 10.dp, vertical = 6.dp)
+                  ) {
                     Text(
-                      text = smoke.name,
+                      text = when {
+                        isEquipped -> "EQUIPPED"
+                        isUnlocked -> "USE"
+                        else -> "🎟️ ${smoke.cost}"
+                      },
                       color = Color.White,
-                      fontSize = 14.sp,
-                      fontWeight = FontWeight.Bold
+                      fontWeight = FontWeight.Black,
+                      fontSize = 11.sp
                     )
                   }
+                }
+              }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // Header: Colored Smoke Clouds
+            Text(
+              text = "🎨 Colored Smoke Clouds:",
+              color = Color(0xFF81D4FA),
+              fontSize = 13.sp,
+              fontWeight = FontWeight.Bold
+            )
+
+            coloredPuffs.forEach { smoke ->
+              val isEquipped = profile.selectedSmokeId == smoke.id
+              val isUnlocked = unlockedSmokes.contains(smoke.id)
+              val canAfford = profile.goldenTickets >= smoke.cost
+
+              Card(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .clip(RoundedCornerShape(12.dp))
+                  .border(
+                    width = if (isEquipped) 2.dp else 1.dp,
+                    color = if (isEquipped) Color(0xFFFFD54F) else Color(0xFF37474F),
+                    shape = RoundedCornerShape(12.dp)
+                  )
+                  .clickable {
+                    if (isUnlocked || canAfford) {
+                      onBuyAndEquipSmoke(smoke.id, smoke.cost)
+                    }
+                  }
+                  .testTag("smoke_option_${smoke.id}"),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF263238))
+              ) {
+                Row(
+                  modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                  verticalAlignment = Alignment.CenterVertically,
+                  horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                  Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                  ) {
+                    Box(
+                      modifier = Modifier
+                        .size(42.dp)
+                        .background(Color(0xFF37474F), CircleShape)
+                        .border(2.dp, smoke.primaryColor, CircleShape),
+                      contentAlignment = Alignment.Center
+                    ) {
+                      Text(text = smoke.iconEmoji, fontSize = 24.sp)
+                    }
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                      Text(
+                        text = smoke.name,
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                      )
+                      if (smoke.description.isNotEmpty()) {
+                        Text(
+                          text = smoke.description,
+                          color = Color(0xFFB0BEC5),
+                          fontSize = 10.sp,
+                          lineHeight = 13.sp
+                        )
+                      }
+                    }
+                  }
+
+                  Spacer(modifier = Modifier.width(8.dp))
 
                   Box(
                     modifier = Modifier

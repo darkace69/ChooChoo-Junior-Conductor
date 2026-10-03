@@ -109,11 +109,26 @@ data class TrainColorOption(
   val cost: Int
 )
 
+enum class SmokeType {
+  PUFFS,
+  BUBBLES,
+  HEARTS,
+  STARS,
+  RAINBOW,
+  MUSIC,
+  SPARKLES,
+  FIRE
+}
+
 data class SmokeEffect(
   val id: String,
   val name: String,
   val iconEmoji: String,
-  val cost: Int
+  val cost: Int,
+  val type: SmokeType = SmokeType.PUFFS,
+  val primaryColor: Color = Color.White,
+  val secondaryColor: Color = Color(0xFFCFD8DC),
+  val description: String = ""
 )
 
 data class StationInfo(
@@ -184,3 +199,16 @@ data class RailwaySign(
   val targetSpeedText: String,
   val targetSpeedMph: Float
 )
+
+data class TrainWreckEvent(
+  val speedMph: Float,
+  val maxSafeSpeedMph: Float,
+  val reasonTitle: String,
+  val incidentDetail: String,
+  val safetyTip: String,
+  val world: LandscapeWorld,
+  val trackSlope: TrackSlope,
+  val trackCurvature: TrackCurvature,
+  val timestampMs: Long = System.currentTimeMillis()
+)
+

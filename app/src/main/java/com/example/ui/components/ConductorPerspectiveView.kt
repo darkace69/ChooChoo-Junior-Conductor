@@ -10,6 +10,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,6 +58,9 @@ fun ConductorPerspectiveView(
   nearbySecret: SecretDiscovery?,
   onTapSecret: (SecretDiscovery) -> Unit,
   approachingSigns: List<com.example.model.RailwaySign> = emptyList(),
+  isWrecked: Boolean = false,
+  dangerLevel: Float = 0f,
+  onRerailTrain: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   val infiniteTransition = rememberInfiniteTransition(label = "scenery_animation")
@@ -68,6 +73,20 @@ fun ConductorPerspectiveView(
     ),
     label = "progress"
   )
+
+  val wobblePhase by infiniteTransition.animateFloat(
+    initialValue = 0f,
+    targetValue = 360f,
+    animationSpec = infiniteRepeatable(
+      animation = tween(160, easing = LinearEasing),
+      repeatMode = RepeatMode.Restart
+    ),
+    label = "danger_wobble"
+  )
+  val dangerTilt = if (dangerLevel > 0.05f) {
+    (sin(Math.toRadians(wobblePhase.toDouble())).toFloat() * dangerLevel * 12f)
+  } else 0f
+  val wreckTilt = if (isWrecked) -20f else dangerTilt
 
   val wiperAngle by infiniteTransition.animateFloat(
     initialValue = -50f,
@@ -141,17 +160,18 @@ fun ConductorPerspectiveView(
       val w = size.width
       val h = size.height
 
-      // 1. Horizon & Sky
-      val horizonY = when (currentSlope) {
-        TrackSlope.UPHILL_STEEP -> h * 0.58f
-        TrackSlope.UPHILL_GENTLE -> h * 0.52f
-        TrackSlope.LEVEL -> h * 0.46f
-        TrackSlope.DOWNHILL_GENTLE -> h * 0.40f
-        TrackSlope.DOWNHILL_STEEP -> h * 0.34f
-      }
+      rotate(degrees = wreckTilt, pivot = Offset(w * 0.5f, h * 0.55f)) {
+        // 1. Horizon & Sky
+        val horizonY = when (currentSlope) {
+          TrackSlope.UPHILL_STEEP -> h * 0.58f
+          TrackSlope.UPHILL_GENTLE -> h * 0.52f
+          TrackSlope.LEVEL -> h * 0.46f
+          TrackSlope.DOWNHILL_GENTLE -> h * 0.40f
+          TrackSlope.DOWNHILL_STEEP -> h * 0.34f
+        }
 
-      val curveOffsetPx = currentCurvature.curveOffset * (w * 0.28f)
-      val vanishingX = (w * 0.5f) + curveOffsetPx
+        val curveOffsetPx = currentCurvature.curveOffset * (w * 0.28f)
+        val vanishingX = (w * 0.5f) + curveOffsetPx
 
       // Gradual Sky Gradient
       drawRect(
@@ -525,7 +545,18 @@ fun ConductorPerspectiveView(
           cap = StrokeCap.Round
         )
       }
+
+      } // End rotate(wreckTilt)
+
+      // Danger Pulsing Red Edge Glow
+      if (dangerLevel > 0.05f && !isWrecked) {
+        drawRect(
+          color = Color(0xFFE53935).copy(alpha = (dangerLevel * 0.55f).coerceIn(0f, 0.7f)),
+          style = Stroke(width = 8.dp.toPx())
+        )
+      }
     }
+
 
     // Nearby Secret Interactive Callout
     if (nearbySecret != null) {
@@ -547,7 +578,7 @@ fun ConductorPerspectiveView(
     }
 
     // Approaching Station Label
-    if (approachingStation != null) {
+    if (approachingStation != null && !isWrecked) {
       Box(
         modifier = Modifier
           .align(Alignment.TopCenter)
@@ -561,6 +592,52 @@ fun ConductorPerspectiveView(
           fontSize = 12.sp,
           fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
         )
+      }
+    }
+
+    // WRECK ON-SCREEN OVERLAY
+    if (isWrecked) {
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(Color(0x44B71C1C)),
+        contentAlignment = Alignment.Center
+      ) {
+        androidx.compose.foundation.layout.Column(
+          horizontalAlignment = Alignment.CenterHorizontally,
+          modifier = Modifier
+            .background(Color(0xEE1E1719), androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .border(2.dp, Color(0xFFFF5252), androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+            .padding(horizontal = 18.dp, vertical = 10.dp)
+        ) {
+          Text(
+            text = "💥 DERAILMENT!",
+            fontSize = 17.sp,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
+            color = Color(0xFFFFD54F)
+          )
+          androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = 2.dp))
+          Text(
+            text = "Speed exceeded curve/slope limit!",
+            fontSize = 11.sp,
+            color = Color(0xFFFFCDD2)
+          )
+          if (onRerailTrain != null) {
+            androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = 6.dp))
+            androidx.compose.material3.Button(
+              onClick = onRerailTrain,
+              colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
+              shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp)
+            ) {
+              Text(
+                "🏗️ RERAIL LOCOMOTIVE",
+                color = Color(0xFF212121),
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Black,
+                fontSize = 11.sp
+              )
+            }
+          }
+        }
       }
     }
   }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -46,6 +47,7 @@ fun SpecialDeliveryMissionsScreen(
   onStartMission: (SpecialDeliveryMission) -> Unit,
   onCancelMission: () -> Unit,
   onBackToDrive: () -> Unit,
+  onWatchSponsorAd: () -> Unit = {},
   modifier: Modifier = Modifier
 ) {
   Surface(
@@ -162,6 +164,72 @@ fun SpecialDeliveryMissionsScreen(
         }
 
         Spacer(modifier = Modifier.height(14.dp))
+      }
+
+      // Sponsor Depot Break between missions
+      Card(
+        modifier = Modifier
+          .fillMaxWidth()
+          .border(1.dp, Color(0xFFFFD54F), RoundedCornerShape(12.dp))
+          .padding(bottom = 14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF263238)),
+        shape = RoundedCornerShape(12.dp)
+      ) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(12.dp),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Box(
+              modifier = Modifier
+                .size(40.dp)
+                .background(Color(0xFF37474F), CircleShape),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(text = "📺", fontSize = 22.sp)
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
+              Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                  text = "Sponsor Break",
+                  color = Color.White,
+                  fontSize = 13.sp,
+                  fontWeight = FontWeight.Black
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Box(
+                  modifier = Modifier
+                    .background(Color(0xFF1B5E20), RoundedCornerShape(4.dp))
+                    .padding(horizontal = 4.dp, vertical = 2.dp)
+                ) {
+                  Text(text = "Ad", color = Color(0xFFA5D6A7), fontSize = 9.sp, fontWeight = FontWeight.Black)
+                }
+              }
+              Text(
+                text = "Watch short ad between runs for +5 🎟️ tickets!",
+                color = Color(0xFFFFD54F),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium
+              )
+            }
+          }
+
+          Button(
+            onClick = onWatchSponsorAd,
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.testTag("watch_sponsor_ad_button")
+          ) {
+            Text("WATCH 🎬", color = Color.Black, fontSize = 11.sp, fontWeight = FontWeight.Black)
+          }
+        }
       }
 
       // Mission List Catalog

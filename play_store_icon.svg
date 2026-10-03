@@ -1,0 +1,294 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Background Sky Gradient -->
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#29B6F6"/>
+      <stop offset="45%" stop-color="#0288D1"/>
+      <stop offset="100%" stop-color="#0D47A1"/>
+    </linearGradient>
+
+    <!-- Golden Sunburst Glow -->
+    <radialGradient id="sunGlow" cx="50%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#FFF9C4" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#FFD54F" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0288D1" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Mountain Hills -->
+    <linearGradient id="hillBackGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#66BB6A"/>
+      <stop offset="100%" stop-color="#2E7D32"/>
+    </linearGradient>
+    <linearGradient id="hillFrontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#81C784"/>
+      <stop offset="100%" stop-color="#388E3C"/>
+    </linearGradient>
+
+    <!-- Train Boiler Body Red Gradient -->
+    <linearGradient id="redBoiler" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#D32F2F"/>
+      <stop offset="30%" stop-color="#FF5252"/>
+      <stop offset="60%" stop-color="#E53935"/>
+      <stop offset="100%" stop-color="#B71C1C"/>
+    </linearGradient>
+
+    <!-- Train Cab Crimson -->
+    <linearGradient id="cabGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FF1744"/>
+      <stop offset="100%" stop-color="#C2185B"/>
+    </linearGradient>
+
+    <!-- Gold Trim Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF176"/>
+      <stop offset="50%" stop-color="#FFD54F"/>
+      <stop offset="100%" stop-color="#FFA000"/>
+    </linearGradient>
+
+    <!-- Steel Smokestack Gradient -->
+    <linearGradient id="steelGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#37474F"/>
+      <stop offset="40%" stop-color="#78909C"/>
+      <stop offset="100%" stop-color="#263238"/>
+    </linearGradient>
+
+    <!-- Soap Bubble Iridescence -->
+    <radialGradient id="bubbleGrad1" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85"/>
+      <stop offset="25%" stop-color="#E0F7FA" stop-opacity="0.5"/>
+      <stop offset="65%" stop-color="#80DEEA" stop-opacity="0.35"/>
+      <stop offset="85%" stop-color="#F48FB1" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#80DEEA" stop-opacity="0.85"/>
+    </radialGradient>
+    <radialGradient id="bubbleGrad2" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="30%" stop-color="#FFF9C4" stop-opacity="0.45"/>
+      <stop offset="70%" stop-color="#B388FF" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#80DEEA" stop-opacity="0.8"/>
+    </radialGradient>
+
+    <!-- Steam Cloud Gradient -->
+    <radialGradient id="steamGrad" cx="40%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="70%" stop-color="#F5F5F5"/>
+      <stop offset="100%" stop-color="#CFD8DC"/>
+    </radialGradient>
+
+    <!-- Headlight Beam -->
+    <linearGradient id="lightBeam" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FFF9C4" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#FFEE58" stop-opacity="0.1"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#001830" flood-opacity="0.45"/>
+    </filter>
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- 1. Background Canvas (512x512 full square per Play Store guidelines) -->
+  <rect width="512" height="512" fill="url(#skyGrad)"/>
+
+  <!-- Sun Rays & Glow -->
+  <circle cx="256" cy="180" r="220" fill="url(#sunGlow)"/>
+
+  <!-- Background Mountain Hills -->
+  <path d="M-20,380 Q100,280 256,330 T532,320 L532,512 L-20,512 Z" fill="url(#hillBackGrad)" opacity="0.6"/>
+  <path d="M-20,410 Q140,340 320,380 T532,370 L532,512 L-20,512 Z" fill="url(#hillFrontGrad)"/>
+
+  <!-- Railroad Track Ballast & Ties Perspective -->
+  <polygon points="170,420 342,420 480,512 32,512" fill="#3E2723"/>
+  <!-- Wooden Ties -->
+  <polygon points="186,432 326,432 334,442 178,442" fill="#5D4037"/>
+  <polygon points="170,448 342,448 352,460 160,460" fill="#4E342E"/>
+  <polygon points="148,468 364,468 378,482 134,482" fill="#5D4037"/>
+  <polygon points="120,490 392,490 410,508 102,508" fill="#4E342E"/>
+
+  <!-- Steel Rails (Golden & Silver Gleam) -->
+  <polygon points="204,420 216,420 120,512 96,512" fill="#ECEFF1"/>
+  <polygon points="308,420 296,420 392,512 416,512" fill="#ECEFF1"/>
+  <polygon points="208,420 214,420 114,512 104,512" fill="#B0BEC5"/>
+  <polygon points="304,420 298,420 398,512 408,512" fill="#B0BEC5"/>
+
+  <!-- 2. Billowing Steam Puffs behind train -->
+  <g filter="url(#dropShadow)">
+    <circle cx="170" cy="110" r="42" fill="url(#steamGrad)"/>
+    <circle cx="215" cy="85" r="54" fill="url(#steamGrad)"/>
+    <circle cx="270" cy="70" r="60" fill="url(#steamGrad)"/>
+    <circle cx="330" cy="95" r="48" fill="url(#steamGrad)"/>
+    <circle cx="295" cy="120" r="38" fill="url(#steamGrad)"/>
+    <!-- Steam highlights -->
+    <circle cx="255" cy="60" r="28" fill="#FFFFFF" opacity="0.6"/>
+    <circle cx="205" cy="75" r="22" fill="#FFFFFF" opacity="0.6"/>
+  </g>
+
+  <!-- 3. Floating Iridescent Soap Bubbles! -->
+  <g filter="url(#softGlow)">
+    <!-- Big Bubble Left -->
+    <circle cx="105" cy="140" r="34" fill="url(#bubbleGrad1)"/>
+    <circle cx="105" cy="140" r="34" fill="none" stroke="#80DEEA" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="105" cy="140" r="31" fill="none" stroke="#F48FB1" stroke-width="1.8" opacity="0.75"/>
+    <path d="M86,126 A24,24 0 0,1 118,118" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="120" cy="154" r="3.5" fill="#FFFFFF" opacity="0.85"/>
+
+    <!-- Medium Bubble Right -->
+    <circle cx="410" cy="150" r="40" fill="url(#bubbleGrad2)"/>
+    <circle cx="410" cy="150" r="40" fill="none" stroke="#B388FF" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="410" cy="150" r="37" fill="none" stroke="#80DEEA" stroke-width="1.8" opacity="0.7"/>
+    <path d="M388,134 A28,28 0 0,1 426,124" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="428" cy="168" r="4" fill="#FFFFFF" opacity="0.85"/>
+
+    <!-- Small Bubble Top Right -->
+    <circle cx="380" cy="80" r="22" fill="url(#bubbleGrad1)"/>
+    <circle cx="380" cy="80" r="22" fill="none" stroke="#80DEEA" stroke-width="2"/>
+    <path d="M368,72 A15,15 0 0,1 390,66" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+
+    <!-- Tiny Bubble Left -->
+    <circle cx="70" cy="210" r="18" fill="url(#bubbleGrad2)"/>
+    <circle cx="70" cy="210" r="18" fill="none" stroke="#F48FB1" stroke-width="1.5"/>
+    <path d="M60,204 A12,12 0 0,1 78,198" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/>
+  </g>
+
+  <!-- Twinkling Stars in Sky -->
+  <path d="M85,85 L88,72 L91,85 L104,88 L91,91 L88,104 L85,91 L72,88 Z" fill="#FFF59D" opacity="0.9"/>
+  <path d="M430,95 L432,86 L434,95 L443,97 L434,99 L432,108 L430,99 L421,97 Z" fill="#FFF59D" opacity="0.9"/>
+  <circle cx="140" cy="65" r="3" fill="#FFFFFF"/>
+  <circle cx="360" cy="50" r="3" fill="#FFFFFF"/>
+
+  <!-- 4. MAIN LOCOMOTIVE STEAM TRAIN (Facing forward with friendly expression) -->
+  <g filter="url(#dropShadow)">
+
+    <!-- Conductor Cap on top of Cab! -->
+    <!-- Cap Visor -->
+    <path d="M190,140 Q256,120 322,140 Q256,155 190,140 Z" fill="#212121"/>
+    <!-- Cap Crown / Top -->
+    <path d="M196,138 C196,95 316,95 316,138 Z" fill="#0D47A1"/>
+    <!-- Gold Cap Band & Badge -->
+    <path d="M192,136 Q256,124 320,136 L320,144 Q256,132 192,144 Z" fill="url(#goldGrad)"/>
+    <!-- Conductor Golden Star Badge -->
+    <circle cx="256" cy="124" r="14" fill="url(#goldGrad)"/>
+    <path d="M256,114 L259,121 L266,122 L261,127 L263,134 L256,130 L249,134 L251,127 L246,122 L253,121 Z" fill="#FFFFFF"/>
+
+    <!-- Cab Roof & Shadow -->
+    <rect x="156" y="160" width="200" height="24" rx="12" fill="#B71C1C"/>
+    <rect x="156" y="166" width="200" height="12" rx="6" fill="#D32F2F"/>
+
+    <!-- Tall Smokestack Chimney -->
+    <polygon points="230,175 282,175 276,215 236,215" fill="url(#steelGrad)"/>
+    <!-- Smokestack Golden Lip Rim -->
+    <rect x="222" y="166" width="68" height="14" rx="7" fill="url(#goldGrad)"/>
+    <!-- Smokestack Golden Collar Ring -->
+    <rect x="232" y="212" width="48" height="8" rx="4" fill="url(#goldGrad)"/>
+
+    <!-- Brass Steam Whistle & Bell -->
+    <!-- Whistle (Left) -->
+    <rect x="194" y="184" width="10" height="26" rx="5" fill="url(#goldGrad)"/>
+    <circle cx="199" cy="180" r="5" fill="#FFE082"/>
+    <!-- Brass Bell (Right) -->
+    <path d="M308,188 C308,180 326,180 326,188 L330,206 L304,206 Z" fill="url(#goldGrad)"/>
+    <rect x="302" y="206" width="30" height="5" rx="2.5" fill="#FFA000"/>
+    <circle cx="317" cy="213" r="3.5" fill="#FFD54F"/>
+
+    <!-- Cab Upper Body -->
+    <rect x="166" y="180" width="180" height="90" rx="14" fill="url(#cabGrad)"/>
+    <!-- Gold Trim outline on Cab -->
+    <rect x="172" y="186" width="168" height="78" rx="10" fill="none" stroke="url(#goldGrad)" stroke-width="4"/>
+
+    <!-- Cab Windows (Blue glass with gloss shine) -->
+    <!-- Left Window -->
+    <rect x="182" y="196" width="64" height="60" rx="8" fill="#81D4FA"/>
+    <path d="M186,200 L216,200 L196,252 L186,252 Z" fill="#E0F7FA" opacity="0.6"/>
+    <!-- Right Window -->
+    <rect x="266" y="196" width="64" height="60" rx="8" fill="#81D4FA"/>
+    <path d="M270,200 L300,200 L280,252 L270,252 Z" fill="#E0F7FA" opacity="0.6"/>
+
+    <!-- Cute Smiling Conductor Bear / Kid peeking through left window! -->
+    <circle cx="214" cy="232" r="16" fill="#8D6E63"/>
+    <circle cx="204" cy="220" r="6" fill="#6D4C41"/>
+    <circle cx="224" cy="220" r="6" fill="#6D4C41"/>
+    <ellipse cx="214" cy="235" rx="8" ry="6" fill="#D7CCC8"/>
+    <ellipse cx="214" cy="233" rx="3" ry="2.2" fill="#212121"/>
+    <!-- Bear eyes -->
+    <circle cx="209" cy="228" r="2.2" fill="#212121"/>
+    <circle cx="219" cy="228" r="2.2" fill="#212121"/>
+    <!-- Waving paw -->
+    <ellipse cx="236" cy="242" rx="6" ry="7" fill="#8D6E63"/>
+
+    <!-- Round Locomotive Boiler (Central Main Front) -->
+    <circle cx="256" cy="330" r="110" fill="url(#redBoiler)"/>
+    <!-- Outer Gold Flange Ring -->
+    <circle cx="256" cy="330" r="110" fill="none" stroke="url(#goldGrad)" stroke-width="8"/>
+    <!-- Rivets around boiler rim -->
+    <circle cx="160" cy="330" r="3.5" fill="#FFF176"/>
+    <circle cx="352" cy="330" r="3.5" fill="#FFF176"/>
+    <circle cx="256" cy="234" r="3.5" fill="#FFF176"/>
+    <circle cx="188" cy="262" r="3.5" fill="#FFF176"/>
+    <circle cx="324" cy="262" r="3.5" fill="#FFF176"/>
+    <circle cx="188" cy="398" r="3.5" fill="#FFF176"/>
+    <circle cx="324" cy="398" r="3.5" fill="#FFF176"/>
+
+    <!-- Inner Boiler Face Door (Dark Navy/Charcoal) -->
+    <circle cx="256" cy="330" r="88" fill="#263238"/>
+    <circle cx="256" cy="330" r="88" fill="none" stroke="#37474F" stroke-width="6"/>
+
+    <!-- Giant Glowing Golden Center Headlight (The Train's Radiant Eye!) -->
+    <circle cx="256" cy="325" r="46" fill="url(#goldGrad)"/>
+    <circle cx="256" cy="325" r="38" fill="#FFF9C4"/>
+    <circle cx="256" cy="325" r="32" fill="#FFFFFF"/>
+    <!-- Headlight Glass Facet / Star Glow -->
+    <path d="M256,298 L262,318 L283,325 L262,332 L256,352 L250,332 L229,325 L250,318 Z" fill="#FFE082" opacity="0.75"/>
+    <circle cx="244" cy="314" r="7" fill="#FFFFFF" opacity="0.9"/>
+
+    <!-- Playful Smiling Face Eyes on the Train! -->
+    <!-- Left Eye -->
+    <ellipse cx="204" cy="315" rx="14" ry="17" fill="#FFFFFF"/>
+    <ellipse cx="206" cy="315" rx="8" ry="11" fill="#1A237E"/>
+    <circle cx="203" cy="311" r="3.5" fill="#FFFFFF"/>
+    <circle cx="208" cy="320" r="1.8" fill="#FFFFFF"/>
+    <!-- Right Eye -->
+    <ellipse cx="308" cy="315" rx="14" ry="17" fill="#FFFFFF"/>
+    <ellipse cx="306" cy="315" rx="8" ry="11" fill="#1A237E"/>
+    <circle cx="303" cy="311" r="3.5" fill="#FFFFFF"/>
+    <circle cx="308" cy="320" r="1.8" fill="#FFFFFF"/>
+
+    <!-- Cheerful Train Smile -->
+    <path d="M236,375 Q256,392 276,375" fill="none" stroke="#FFD54F" stroke-width="5" stroke-linecap="round"/>
+    <!-- Rosy Cheeks -->
+    <ellipse cx="198" cy="340" rx="9" ry="5.5" fill="#FF8A80" opacity="0.7"/>
+    <ellipse cx="314" cy="340" rx="9" ry="5.5" fill="#FF8A80" opacity="0.7"/>
+
+    <!-- Heavy Bumper Bar / Buffer Beam -->
+    <rect x="110" y="420" width="292" height="28" rx="8" fill="#C62828"/>
+    <rect x="110" y="420" width="292" height="28" rx="8" fill="none" stroke="url(#goldGrad)" stroke-width="3"/>
+    <!-- Round Buffer Stops (Left & Right) -->
+    <circle cx="140" cy="434" r="16" fill="#37474F"/>
+    <circle cx="140" cy="434" r="12" fill="#78909C"/>
+    <circle cx="140" cy="434" r="5" fill="#ECEFF1"/>
+
+    <circle cx="372" cy="434" r="16" fill="#37474F"/>
+    <circle cx="372" cy="434" r="12" fill="#78909C"/>
+    <circle cx="372" cy="434" r="5" fill="#ECEFF1"/>
+
+    <!-- Coupler Hitch in Center -->
+    <rect x="242" y="428" width="28" height="22" rx="4" fill="#212121"/>
+    <circle cx="256" cy="439" r="6" fill="#78909C"/>
+
+    <!-- V-Shaped Cowcatcher / Pilot Grille -->
+    <polygon points="126,448 386,448 410,486 256,500 102,486" fill="#263238"/>
+    <!-- Golden Slats on Cowcatcher -->
+    <polygon points="144,452 160,452 148,482 134,482" fill="url(#goldGrad)"/>
+    <polygon points="180,452 196,452 190,486 174,486" fill="url(#goldGrad)"/>
+    <polygon points="216,452 232,452 230,491 214,491" fill="url(#goldGrad)"/>
+    <polygon points="250,452 262,452 260,496 252,496" fill="#FFF176"/>
+    <polygon points="280,452 296,452 298,491 282,491" fill="url(#goldGrad)"/>
+    <polygon points="316,452 332,452 338,486 322,486" fill="url(#goldGrad)"/>
+    <polygon points="352,452 368,452 378,482 364,482" fill="url(#goldGrad)"/>
+
+    <!-- Outer Front Cowcatcher Rim Bar -->
+    <path d="M102,486 L256,500 L410,486 L404,494 L256,508 L108,494 Z" fill="#FFB300"/>
+  </g>
+</svg>

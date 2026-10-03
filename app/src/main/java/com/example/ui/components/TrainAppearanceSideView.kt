@@ -43,6 +43,8 @@ fun TrainAppearanceSideView(
   trackPosition: Float,
   cargoEmoji: String?,
   isPaused: Boolean,
+  isWrecked: Boolean = false,
+  dangerLevel: Float = 0f,
   modifier: Modifier = Modifier
 ) {
   val colorOption = TrackWorldData.availableColors.firstOrNull { it.id == colorId }
@@ -66,7 +68,7 @@ fun TrainAppearanceSideView(
     targetValue = 1f,
     animationSpec = infiniteRepeatable(
       animation = tween(
-        durationMillis = if (abs(actualSpeedMph) > 0.5f && !isPaused) 1200 else 3000,
+        durationMillis = if (abs(actualSpeedMph) > 0.5f && !isPaused && !isWrecked) 1200 else 3000,
         easing = LinearEasing
       ),
       repeatMode = RepeatMode.Restart
@@ -75,10 +77,9 @@ fun TrainAppearanceSideView(
   )
 
   // Live profile wheel rotation:
-  // Scales with physical track movement when driving, and spins smoothly when in preview or idle!
   val isReverse = actualSpeedMph < 0f
   val wheelRot = when {
-    isPaused -> 0f
+    isPaused || isWrecked -> 0f
     abs(actualSpeedMph) > 0.5f -> {
       val roll = (trackPosition * 65f) % 360f
       if (isReverse) -roll else roll
@@ -173,37 +174,65 @@ fun TrainAppearanceSideView(
         isMoving = abs(actualSpeedMph) > 0.5f
       )
 
-      // Passenger / Cargo Coach (Coupled behind locomotive)
-      val coachX = trainCenterX - 110.dp.toPx()
-      val coachY = trainBaseY - 48.dp.toPx()
-      drawCoach(
-        x = coachX,
-        y = coachY,
-        primaryColor = primaryColor,
-        secondaryColor = secondaryColor,
-        cargoEmoji = cargoEmoji,
-        wheelRot = wheelRot,
-        trainBaseY = trainBaseY
-      )
+      // Rotate whole train if wrecked
+      val trainTilt = if (isWrecked) -24f else 0f
+      rotate(degrees = trainTilt, pivot = Offset(trainCenterX, trainBaseY)) {
+        // Passenger / Cargo Coach (Coupled behind locomotive)
+        val coachX = trainCenterX - 110.dp.toPx()
+        val coachY = trainBaseY - 48.dp.toPx()
+        drawCoach(
+          x = coachX,
+          y = coachY,
+          primaryColor = primaryColor,
+          secondaryColor = secondaryColor,
+          cargoEmoji = cargoEmoji,
+          wheelRot = wheelRot,
+          trainBaseY = trainBaseY
+        )
 
-      // Coupler linking coach to locomotive
-      drawLine(
-        color = Color(0xFF263238),
-        start = Offset(coachX + 80.dp.toPx(), trainBaseY - 14.dp.toPx()),
-        end = Offset(trainCenterX - 20.dp.toPx(), trainBaseY - 14.dp.toPx()),
-        strokeWidth = 4.dp.toPx()
-      )
+        // Coupler linking coach to locomotive
+        drawLine(
+          color = Color(0xFF263238),
+          start = Offset(coachX + 80.dp.toPx(), trainBaseY - 14.dp.toPx()),
+          end = Offset(trainCenterX - 20.dp.toPx(), trainBaseY - 14.dp.toPx()),
+          strokeWidth = 4.dp.toPx()
+        )
 
-      // Draw Selected Engine Body
-      drawEngine(
-        engineId = engineId,
-        x = trainCenterX - 20.dp.toPx(),
-        y = trainBaseY - 56.dp.toPx(),
-        primaryColor = primaryColor,
-        secondaryColor = secondaryColor,
-        wheelRot = wheelRot,
-        trainBaseY = trainBaseY
-      )
+        // Draw Selected Engine Body
+        drawEngine(
+          engineId = engineId,
+          x = trainCenterX - 20.dp.toPx(),
+          y = trainBaseY - 56.dp.toPx(),
+          primaryColor = primaryColor,
+          secondaryColor = secondaryColor,
+          wheelRot = wheelRot,
+          trainBaseY = trainBaseY
+        )
+      }
+
+      // Wreck cartoon soot and sparks
+      if (isWrecked) {
+        drawCircle(
+          color = Color(0x99212121),
+          radius = 16.dp.toPx(),
+          center = Offset(smokestackX - 10.dp.toPx(), smokestackY - 15.dp.toPx())
+        )
+        drawCircle(
+          color = Color(0x66757575),
+          radius = 24.dp.toPx(),
+          center = Offset(smokestackX - 25.dp.toPx(), smokestackY - 30.dp.toPx())
+        )
+        drawCircle(
+          color = Color(0xFFFFD54F),
+          radius = 4.dp.toPx(),
+          center = Offset(trainCenterX + 45.dp.toPx(), trainBaseY - 40.dp.toPx())
+        )
+        drawCircle(
+          color = Color(0xFFFF5252),
+          radius = 3.dp.toPx(),
+          center = Offset(trainCenterX + 60.dp.toPx(), trainBaseY - 25.dp.toPx())
+        )
+      }
 
       // 4. Pause Dim Overlay
       if (isPaused) {
@@ -215,9 +244,16 @@ fun TrainAppearanceSideView(
     }
 
     // Top Label in View
+    val topLabel = if (isWrecked) {
+      "💥 LOCOMOTIVE DERAILED • EXCESSIVE SPEED"
+    } else {
+      "🚂 LIVE TRAIN PROFILE • ${TrackWorldData.availableEngines.firstOrNull { it.id == engineId }?.name ?: "Express"}"
+    }
+    val topColor = if (isWrecked) Color(0xFFFF5252) else Color(0xFFFFD54F)
+
     Text(
-      text = "🚂 LIVE TRAIN PROFILE • ${TrackWorldData.availableEngines.firstOrNull { it.id == engineId }?.name ?: "Express"}",
-      color = Color(0xFFFFD54F),
+      text = topLabel,
+      color = topColor,
       fontSize = 11.sp,
       fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
       modifier = Modifier
@@ -571,33 +607,172 @@ private fun DrawScope.drawSmokePuffs(
   smokeId: String,
   isMoving: Boolean
 ) {
-  val numPuffs = 4
+  val smokeEffect = TrackWorldData.availableSmokes.firstOrNull { it.id == smokeId }
+    ?: TrackWorldData.availableSmokes.first()
+
+  val numPuffs = 5
   for (i in 0 until numPuffs) {
     val progress = ((smokeAnim + (i.toFloat() / numPuffs)) % 1f)
-    // Rises up from chimney and gently billows backwards
-    val puffX = smokestackX - (progress * 80.dp.toPx())
-    val puffY = smokestackY - (progress * 50.dp.toPx())
-    val puffRadius = (5.dp.toPx() + (progress * 18.dp.toPx()))
-    val alpha = (1f - progress).coerceIn(0f, 1f)
+    // Wobble float effect
+    val wobbleX = (sin((progress * 12f) + i) * 7.dp.toPx())
+    val wobbleY = (cos((progress * 8f) + i) * 4.dp.toPx())
 
-    when (smokeId) {
-      "heart_puffs" -> {
-        drawCircle(Color(0xFFF48FB1).copy(alpha = alpha * 0.7f), radius = puffRadius, center = Offset(puffX, puffY))
-      }
-      "star_puffs" -> {
-        drawCircle(Color(0xFFFFD54F).copy(alpha = alpha * 0.8f), radius = puffRadius, center = Offset(puffX, puffY))
-      }
-      "rainbow_puffs" -> {
-        val rainbowColors = listOf(Color.Red, Color.Yellow, Color.Green, Color.Cyan, Color.Magenta)
+    // Rises up from chimney and drifts backwards with velocity
+    val driftDist = if (isMoving) 95.dp.toPx() else 55.dp.toPx()
+    val puffX = smokestackX - (progress * driftDist) + wobbleX
+    val puffY = smokestackY - (progress * 58.dp.toPx()) + wobbleY
+    val puffRadius = (6.dp.toPx() + (progress * 16.dp.toPx()))
+    val alpha = (1f - (progress * progress)).coerceIn(0f, 1f)
+
+    when (smokeEffect.type) {
+      com.example.model.SmokeType.BUBBLES -> {
+        // Translucent iridescent soap bubble with rainbow sheen & specular gleam!
+        // 1. Transparent watery interior
         drawCircle(
-          rainbowColors[i % rainbowColors.size].copy(alpha = alpha * 0.65f),
+          color = Color(0x3580DEEA).copy(alpha = alpha * 0.35f),
           radius = puffRadius,
           center = Offset(puffX, puffY)
         )
+        // 2. Cyan iridescent outer ring
+        drawCircle(
+          color = Color(0xFF80DEEA).copy(alpha = alpha * 0.85f),
+          radius = puffRadius,
+          center = Offset(puffX, puffY),
+          style = Stroke(width = 1.8.dp.toPx())
+        )
+        // 3. Pink/magenta iridescent inner sheen
+        drawCircle(
+          color = Color(0xFFF48FB1).copy(alpha = alpha * 0.65f),
+          radius = puffRadius * 0.90f,
+          center = Offset(puffX, puffY),
+          style = Stroke(width = 1.2.dp.toPx())
+        )
+        // 4. White curved crescent highlight on upper-left rim
+        drawArc(
+          color = Color.White.copy(alpha = alpha * 0.92f),
+          startAngle = 195f,
+          sweepAngle = 75f,
+          useCenter = false,
+          topLeft = Offset(puffX - puffRadius * 0.78f, puffY - puffRadius * 0.78f),
+          size = Size(puffRadius * 1.56f, puffRadius * 1.56f),
+          style = Stroke(width = 1.8.dp.toPx(), cap = StrokeCap.Round)
+        )
+        // 5. Specular shine dot on lower-right rim
+        drawCircle(
+          color = Color.White.copy(alpha = alpha * 0.85f),
+          radius = (puffRadius * 0.16f).coerceAtLeast(1.5f),
+          center = Offset(puffX + puffRadius * 0.45f, puffY + puffRadius * 0.45f)
+        )
       }
+
+      com.example.model.SmokeType.HEARTS -> {
+        // Floating love heart
+        val heartSize = puffRadius * 1.3f
+        val pink = smokeEffect.primaryColor.copy(alpha = alpha * 0.85f)
+        // Two lobes
+        drawCircle(pink, radius = heartSize * 0.38f, center = Offset(puffX - heartSize * 0.28f, puffY - heartSize * 0.15f))
+        drawCircle(pink, radius = heartSize * 0.38f, center = Offset(puffX + heartSize * 0.28f, puffY - heartSize * 0.15f))
+        // Bottom tip
+        val path = Path().apply {
+          moveTo(puffX - heartSize * 0.55f, puffY - heartSize * 0.1f)
+          lineTo(puffX + heartSize * 0.55f, puffY - heartSize * 0.1f)
+          lineTo(puffX, puffY + heartSize * 0.55f)
+          close()
+        }
+        drawPath(path, color = pink)
+        // Gleam dot
+        drawCircle(Color.White.copy(alpha = alpha * 0.8f), radius = 1.8.dp.toPx(), center = Offset(puffX - heartSize * 0.25f, puffY - heartSize * 0.22f))
+      }
+
+      com.example.model.SmokeType.STARS -> {
+        // Sparkling four-point starlight
+        val starR = puffRadius * 1.25f
+        val starColor = smokeEffect.primaryColor.copy(alpha = alpha * 0.9f)
+        val path = Path().apply {
+          moveTo(puffX, puffY - starR)
+          quadraticTo(puffX, puffY, puffX + starR, puffY)
+          quadraticTo(puffX, puffY, puffX, puffY + starR)
+          quadraticTo(puffX, puffY, puffX - starR, puffY)
+          quadraticTo(puffX, puffY, puffX, puffY - starR)
+          close()
+        }
+        drawPath(path, color = starColor)
+        drawCircle(Color.White.copy(alpha = alpha), radius = starR * 0.35f, center = Offset(puffX, puffY))
+      }
+
+      com.example.model.SmokeType.MUSIC -> {
+        // Musical note
+        val noteColor = smokeEffect.primaryColor.copy(alpha = alpha * 0.9f)
+        val noteHeadR = puffRadius * 0.42f
+        // Tilted notehead
+        drawCircle(noteColor, radius = noteHeadR, center = Offset(puffX, puffY + noteHeadR))
+        // Note stem
+        drawLine(
+          color = noteColor,
+          start = Offset(puffX + noteHeadR * 0.8f, puffY + noteHeadR),
+          end = Offset(puffX + noteHeadR * 0.8f, puffY - noteHeadR * 2.2f),
+          strokeWidth = 2.dp.toPx()
+        )
+        // Note flag
+        drawLine(
+          color = noteColor,
+          start = Offset(puffX + noteHeadR * 0.8f, puffY - noteHeadR * 2.2f),
+          end = Offset(puffX + noteHeadR * 2.4f, puffY - noteHeadR * 1.2f),
+          strokeWidth = 2.5.dp.toPx(),
+          cap = StrokeCap.Round
+        )
+      }
+
+      com.example.model.SmokeType.SPARKLES -> {
+        // Magic fairy dust diamond cross
+        val sparkR = puffRadius * 1.1f
+        val sparkColor = smokeEffect.primaryColor.copy(alpha = alpha * 0.85f)
+        drawLine(
+          color = sparkColor,
+          start = Offset(puffX, puffY - sparkR),
+          end = Offset(puffX, puffY + sparkR),
+          strokeWidth = 2.dp.toPx()
+        )
+        drawLine(
+          color = sparkColor,
+          start = Offset(puffX - sparkR, puffY),
+          end = Offset(puffX + sparkR, puffY),
+          strokeWidth = 2.dp.toPx()
+        )
+        drawCircle(Color.White.copy(alpha = alpha * 0.95f), radius = 2.5.dp.toPx(), center = Offset(puffX, puffY))
+        drawCircle(smokeEffect.secondaryColor.copy(alpha = alpha * 0.5f), radius = sparkR * 0.6f, center = Offset(puffX, puffY))
+      }
+
+      com.example.model.SmokeType.FIRE -> {
+        // Flame puffs with floating embers
+        val flameColor = if (progress < 0.35f) Color(0xFFFFD600) else if (progress < 0.7f) Color(0xFFFF6D00) else Color(0xFFDD2C00)
+        drawCircle(flameColor.copy(alpha = alpha * 0.85f), radius = puffRadius, center = Offset(puffX, puffY))
+        drawCircle(Color(0xFFFFF9C4).copy(alpha = alpha * 0.9f), radius = puffRadius * 0.45f, center = Offset(puffX, puffY))
+        // Miniature rising ember spark
+        val emberX = puffX + ((sin(progress * 25f + i) * 12.dp.toPx()))
+        val emberY = puffY - (progress * 15.dp.toPx())
+        drawCircle(Color(0xFFFFEA00).copy(alpha = alpha), radius = 1.8.dp.toPx(), center = Offset(emberX, emberY))
+      }
+
+      com.example.model.SmokeType.RAINBOW -> {
+        // Rainbow mist cycling spectrum colors
+        val rainbowColors = listOf(
+          Color(0xFFFF1744), Color(0xFFFF9100), Color(0xFFFFEA00),
+          Color(0xFF00E676), Color(0xFF00E5FF), Color(0xFFD500F9)
+        )
+        val color = rainbowColors[(i + (progress * 3).toInt()) % rainbowColors.size]
+        drawCircle(color.copy(alpha = alpha * 0.75f), radius = puffRadius, center = Offset(puffX, puffY))
+        drawCircle(Color.White.copy(alpha = alpha * 0.5f), radius = puffRadius * 0.5f, center = Offset(puffX - 2.dp.toPx(), puffY - 2.dp.toPx()))
+      }
+
       else -> {
-        // Classic white puff
-        drawCircle(Color.White.copy(alpha = alpha * 0.65f), radius = puffRadius, center = Offset(puffX, puffY))
+        // PUFFS (Classic or Colored)
+        val primary = smokeEffect.primaryColor.copy(alpha = alpha * 0.78f)
+        val secondary = smokeEffect.secondaryColor.copy(alpha = alpha * 0.60f)
+        // Main puffy body with overlapping cloud lobes
+        drawCircle(secondary, radius = puffRadius, center = Offset(puffX, puffY))
+        drawCircle(primary, radius = puffRadius * 0.85f, center = Offset(puffX - 2.dp.toPx(), puffY - 2.dp.toPx()))
+        drawCircle(Color.White.copy(alpha = alpha * 0.45f), radius = puffRadius * 0.45f, center = Offset(puffX - 4.dp.toPx(), puffY - 4.dp.toPx()))
       }
     }
   }

@@ -23,11 +23,13 @@ import com.example.ui.components.ConductorLogbookScreen
 import com.example.ui.components.ConductorPerspectiveView
 import com.example.ui.components.ConductorTopHeader
 import com.example.ui.components.MissionCelebrationDialog
+import com.example.ui.components.MissionInterstitialAdDialog
 import com.example.ui.components.SecretDiscoveredDialog
 import com.example.ui.components.SpecialDeliveryMissionsScreen
 import com.example.ui.components.StationCelebrationDialog
 import com.example.ui.components.TrainAppearanceSideView
 import com.example.ui.components.TrainCustomizationScreen
+import com.example.ui.components.TrainWreckDialog
 import com.example.viewmodel.ScreenTab
 import com.example.viewmodel.TrainGameViewModel
 
@@ -58,6 +60,11 @@ fun ConductorGameScreen(
   val nearbySecret by viewModel.nearbySecret.collectAsStateWithLifecycle()
   val discoveredSecretModal by viewModel.discoveredSecretModal.collectAsStateWithLifecycle()
 
+  // Train Wreck / Derailment state
+  val isWrecked by viewModel.isWrecked.collectAsStateWithLifecycle()
+  val currentWreck by viewModel.currentWreck.collectAsStateWithLifecycle()
+  val dangerLevel by viewModel.dangerLevel.collectAsStateWithLifecycle()
+
   // Pause state
   val isPaused by viewModel.isPaused.collectAsStateWithLifecycle()
 
@@ -67,6 +74,7 @@ fun ConductorGameScreen(
   val missionTimeRemainingSec by viewModel.missionTimeRemainingSec.collectAsStateWithLifecycle()
   val missionIncidents by viewModel.missionIncidents.collectAsStateWithLifecycle()
   val missionCelebrationMessage by viewModel.missionCelebrationMessage.collectAsStateWithLifecycle()
+  val currentInterstitialAd by viewModel.currentInterstitialAd.collectAsStateWithLifecycle()
 
   // Railway Signs state (SLOW DOWN & SPEED UP)
   val activeRailwaySign by viewModel.activeRailwaySign.collectAsStateWithLifecycle()
@@ -125,6 +133,9 @@ fun ConductorGameScreen(
                 nearbySecret = nearbySecret,
                 onTapSecret = { viewModel.tapSecret(it) },
                 approachingSigns = approachingSigns,
+                isWrecked = isWrecked,
+                dangerLevel = dangerLevel,
+                onRerailTrain = { viewModel.rerailTrain() },
                 modifier = Modifier.fillMaxSize()
               )
             }
@@ -147,7 +158,10 @@ fun ConductorGameScreen(
               onToggleWipers = { viewModel.toggleWipers() },
               onToggleHeadlight = { viewModel.toggleHeadlight() },
               onToggleSwitchTrack = { viewModel.toggleSwitchTrack() },
-              activeRailwaySign = activeRailwaySign
+              activeRailwaySign = activeRailwaySign,
+              isWrecked = isWrecked,
+              onRerail = { viewModel.rerailTrain() },
+              onSimulateWreck = { viewModel.simulateSpeedWreck() }
             )
 
             // BOTTOM SPLIT: Dynamic Live View of what the train looks like!
@@ -165,6 +179,8 @@ fun ConductorGameScreen(
                 trackPosition = trackPosition,
                 cargoEmoji = if (missionState == MissionState.DELIVERING) activeMission?.cargoEmoji else null,
                 isPaused = isPaused,
+                isWrecked = isWrecked,
+                dangerLevel = dangerLevel,
                 modifier = Modifier.fillMaxSize()
               )
             }
@@ -187,7 +203,8 @@ fun ConductorGameScreen(
             incidentsCount = missionIncidents,
             onStartMission = { viewModel.startMission(it) },
             onCancelMission = { viewModel.cancelMission() },
-            onBackToDrive = { viewModel.setTab(ScreenTab.DRIVE) }
+            onBackToDrive = { viewModel.setTab(ScreenTab.DRIVE) },
+            onWatchSponsorAd = { viewModel.watchSponsorAd() }
           )
         }
         ScreenTab.LOGBOOK -> {
@@ -219,6 +236,25 @@ fun ConductorGameScreen(
           onDismiss = { viewModel.dismissMissionCelebration() }
         )
       }
+
+      // Interstitial Ad Dialog between missions
+      currentInterstitialAd?.let { ad ->
+        MissionInterstitialAdDialog(
+          ad = ad,
+          onDismiss = { viewModel.dismissInterstitialAd(false) },
+          onClaimReward = { viewModel.dismissInterstitialAd(true) }
+        )
+      }
+
+      // Train Wreck / Derailment Dialog
+      currentWreck?.let { wreck ->
+        TrainWreckDialog(
+          wreck = wreck,
+          onRerail = { viewModel.rerailTrain() },
+          onTowToStation = { viewModel.towToNearestStation() }
+        )
+      }
     }
   }
 }
+

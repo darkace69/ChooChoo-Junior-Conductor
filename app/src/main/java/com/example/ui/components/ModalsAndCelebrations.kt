@@ -247,3 +247,182 @@ fun MissionCelebrationDialog(
     }
   }
 }
+
+@Composable
+fun TrainWreckDialog(
+  wreck: com.example.model.TrainWreckEvent,
+  onRerail: () -> Unit,
+  onTowToStation: () -> Unit
+) {
+  Dialog(onDismissRequest = { /* Must choose rerail or tow to continue */ }) {
+    Card(
+      shape = RoundedCornerShape(22.dp),
+      colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1719)),
+      modifier = Modifier
+        .fillMaxWidth()
+        .border(3.5.dp, Color(0xFFE53935), RoundedCornerShape(22.dp))
+        .padding(4.dp)
+        .testTag("train_wreck_dialog")
+    ) {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+      ) {
+        // Warning Badge Header
+        Surface(
+          shape = RoundedCornerShape(20.dp),
+          color = Color(0xFFD32F2F).copy(alpha = 0.25f),
+          border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFE53935)),
+          modifier = Modifier.padding(bottom = 8.dp)
+        ) {
+          Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Text("🚨", fontSize = 16.sp)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+              "EMERGENCY RUNAWAY WRECK",
+              color = Color(0xFFFF8A80),
+              fontSize = 11.sp,
+              fontWeight = FontWeight.Black
+            )
+          }
+        }
+
+        // Cartoon Dizzy Locomotive Icon
+        Text(
+          text = "💥 🚂 💨 🩹",
+          fontSize = 36.sp,
+          modifier = Modifier.padding(vertical = 4.dp)
+        )
+
+        Text(
+          text = wreck.reasonTitle,
+          fontSize = 19.sp,
+          fontWeight = FontWeight.Black,
+          color = Color(0xFFFFD54F),
+          textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Speed Telemetry Comparison Box
+        Surface(
+          shape = RoundedCornerShape(12.dp),
+          color = Color(0xFF2B2024),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 14.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              Text("Recorded Speed", fontSize = 11.sp, color = Color(0xFFB0BEC5))
+              Text(
+                "${"%.1f".format(wreck.speedMph)} MPH",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Black,
+                color = Color(0xFFFF5252)
+              )
+            }
+            Box(
+              modifier = Modifier
+                .width(1.dp)
+                .height(30.dp)
+                .background(Color(0xFF544449))
+            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              Text("Safe Track Limit", fontSize = 11.sp, color = Color(0xFFB0BEC5))
+              Text(
+                "${"%.0f".format(wreck.maxSafeSpeedMph)} MPH",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Black,
+                color = Color(0xFF81C784)
+              )
+            }
+          }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Incident Details
+        Text(
+          text = wreck.incidentDetail,
+          fontSize = 13.sp,
+          color = Color(0xFFECEFF1),
+          textAlign = TextAlign.Center,
+          lineHeight = 17.sp
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Kid-friendly Safety Tip
+        Surface(
+          shape = RoundedCornerShape(10.dp),
+          color = Color(0xFF37474F).copy(alpha = 0.5f),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Row(
+            modifier = Modifier.padding(10.dp),
+            verticalAlignment = Alignment.Top
+          ) {
+            Text("💡", fontSize = 15.sp)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+              text = wreck.safetyTip,
+              fontSize = 12.sp,
+              color = Color(0xFFFFF9C4),
+              lineHeight = 16.sp,
+              fontWeight = FontWeight.Medium
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Action 1: Call Breakdown Crane (Primary)
+        Button(
+          onClick = onRerail,
+          colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFB300)),
+          shape = RoundedCornerShape(12.dp),
+          modifier = Modifier
+            .fillMaxWidth()
+            .testTag("rerail_crane_button")
+        ) {
+          Text(
+            "🏗️ CALL BREAKDOWN CRANE & RERAIL",
+            fontWeight = FontWeight.Black,
+            fontSize = 13.sp,
+            color = Color(0xFF212121)
+          )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Action 2: Tow to Station (Secondary)
+        Button(
+          onClick = onTowToStation,
+          colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1)),
+          shape = RoundedCornerShape(12.dp),
+          modifier = Modifier
+            .fillMaxWidth()
+            .testTag("tow_station_button")
+        ) {
+          Text(
+            "🚉 EMERGENCY TOW TO STATION",
+            fontWeight = FontWeight.Black,
+            fontSize = 13.sp,
+            color = Color.White
+          )
+        }
+      }
+    }
+  }
+}
+

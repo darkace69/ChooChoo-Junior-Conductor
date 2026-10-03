@@ -81,6 +81,9 @@ fun ConductorControlPanel(
   onToggleHeadlight: () -> Unit,
   onToggleSwitchTrack: () -> Unit,
   activeRailwaySign: RailwaySign? = null,
+  isWrecked: Boolean = false,
+  onRerail: (() -> Unit)? = null,
+  onSimulateWreck: (() -> Unit)? = null,
   modifier: Modifier = Modifier
 ) {
   Surface(
@@ -93,6 +96,57 @@ fun ConductorControlPanel(
         .fillMaxWidth()
         .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
+
+      // EMERGENCY DERAILMENT BANNER
+      if (isWrecked) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 6.dp)
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color(0xFFB71C1C))
+            .border(2.dp, Color(0xFFFF5252), RoundedCornerShape(10.dp))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .testTag("wreck_alert_banner"),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("💥", fontSize = 18.sp)
+            Spacer(modifier = Modifier.width(6.dp))
+            Column {
+              Text(
+                "TRAIN DERAILED!",
+                color = Color.White,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black
+              )
+              Text(
+                "Speed was too high for track limit",
+                color = Color(0xFFFFCDD2),
+                fontSize = 9.sp
+              )
+            }
+          }
+          if (onRerail != null) {
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(Color(0xFFFFB300))
+                .clickable { onRerail() }
+                .padding(horizontal = 10.dp, vertical = 5.dp)
+                .testTag("panel_rerail_button")
+            ) {
+              Text(
+                "🏗️ RERAIL",
+                color = Color(0xFF212121),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Black
+              )
+            }
+          }
+        }
+      }
 
       // Active Railway Advisory Sign Banner (SLOW DOWN & SPEED UP)
       AnimatedVisibility(visible = activeRailwaySign != null) {
@@ -381,6 +435,30 @@ fun ConductorControlPanel(
               )
             }
           }
+
+          // SIMULATE WRECK BUTTON (Quick test / simulation)
+          if (onSimulateWreck != null && !isWrecked) {
+            Box(
+              modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF3E2723))
+                .border(1.dp, Color(0xFFFF7043), RoundedCornerShape(10.dp))
+                .clickable { onSimulateWreck() }
+                .padding(horizontal = 7.dp, vertical = 6.dp)
+                .testTag("simulate_wreck_button"),
+              contentAlignment = Alignment.Center
+            ) {
+              Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "💥", fontSize = 14.sp)
+                Text(
+                  text = "SIM WRECK",
+                  color = Color(0xFFFFAB91),
+                  fontSize = 8.sp,
+                  fontWeight = FontWeight.Bold
+                )
+              }
+            }
+          }
         }
       }
 
@@ -390,6 +468,7 @@ fun ConductorControlPanel(
       ConductorThrottleLever(
         currentNotch = speedNotch,
         onSetSpeedNotch = onSetSpeedNotch,
+        isWrecked = isWrecked,
         modifier = Modifier.fillMaxWidth()
       )
     }
@@ -400,6 +479,7 @@ fun ConductorControlPanel(
 fun ConductorThrottleLever(
   currentNotch: SpeedNotch,
   onSetSpeedNotch: (SpeedNotch) -> Unit,
+  isWrecked: Boolean = false,
   modifier: Modifier = Modifier
 ) {
   val notches = remember {
@@ -448,14 +528,16 @@ fun ConductorThrottleLever(
         )
       }
 
-      val notchLabel = when (currentNotch) {
+      val notchLabel = if (isWrecked) {
+        "💥 DERAILED (LOCKED)"
+      } else when (currentNotch) {
         SpeedNotch.REVERSE -> "◀ REVERSE (-14 MPH)"
         SpeedNotch.STOP -> "🛑 BRAKE (0 MPH)"
         SpeedNotch.SPEED_1 -> "🐢 NOTCH 1 (16 MPH)"
         SpeedNotch.SPEED_2 -> "🚂 NOTCH 2 (32 MPH)"
         SpeedNotch.SPEED_3 -> "⚡ NOTCH 3 (52 MPH)"
       }
-      val notchColor = when (currentNotch) {
+      val notchColor = if (isWrecked) Color(0xFFFF5252) else when (currentNotch) {
         SpeedNotch.REVERSE -> Color(0xFFFF9800)
         SpeedNotch.STOP -> Color(0xFFEF5350)
         SpeedNotch.SPEED_1 -> Color(0xFF66BB6A)
@@ -478,20 +560,24 @@ fun ConductorThrottleLever(
       modifier = Modifier
         .fillMaxWidth()
         .height(48.dp)
-        .pointerInput(Unit) {
+        .pointerInput(isWrecked) {
           detectTapGestures { offset ->
-            val fraction = (offset.x / size.width).coerceIn(0f, 1f)
-            val targetIdx = (fraction * (notches.size - 1)).roundToInt().coerceIn(0, notches.size - 1)
-            onSetSpeedNotch(notches[targetIdx])
+            if (!isWrecked) {
+              val fraction = (offset.x / size.width).coerceIn(0f, 1f)
+              val targetIdx = (fraction * (notches.size - 1)).roundToInt().coerceIn(0, notches.size - 1)
+              onSetSpeedNotch(notches[targetIdx])
+            }
           }
         }
-        .pointerInput(Unit) {
+        .pointerInput(isWrecked) {
           detectHorizontalDragGestures { change, _ ->
             change.consume()
-            val fraction = (change.position.x / size.width).coerceIn(0f, 1f)
-            val targetIdx = (fraction * (notches.size - 1)).roundToInt().coerceIn(0, notches.size - 1)
-            if (targetIdx != currentIndex) {
-              onSetSpeedNotch(notches[targetIdx])
+            if (!isWrecked) {
+              val fraction = (change.position.x / size.width).coerceIn(0f, 1f)
+              val targetIdx = (fraction * (notches.size - 1)).roundToInt().coerceIn(0, notches.size - 1)
+              if (targetIdx != currentIndex) {
+                onSetSpeedNotch(notches[targetIdx])
+              }
             }
           }
         }

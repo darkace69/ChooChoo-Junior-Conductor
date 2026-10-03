@@ -68,6 +68,19 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
   private val _actualSpeedMph = MutableStateFlow(0f)
   val actualSpeedMph: StateFlow<Float> = _actualSpeedMph.asStateFlow()
 
+  // Train Wreck / Derailment State
+  private val _isWrecked = MutableStateFlow(false)
+  val isWrecked: StateFlow<Boolean> = _isWrecked.asStateFlow()
+
+  private val _currentWreck = MutableStateFlow<com.example.model.TrainWreckEvent?>(null)
+  val currentWreck: StateFlow<com.example.model.TrainWreckEvent?> = _currentWreck.asStateFlow()
+
+  private val _dangerLevel = MutableStateFlow(0f)
+  val dangerLevel: StateFlow<Float> = _dangerLevel.asStateFlow()
+
+  private var overspeedDangerAccumulator = 0f
+  private var hadHighDangerCloseCall = false
+
   private val _trackPosition = MutableStateFlow(10f)
   val trackPosition: StateFlow<Float> = _trackPosition.asStateFlow()
 
@@ -136,6 +149,11 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
   private val _missionCelebrationMessage = MutableStateFlow<String?>(null)
   val missionCelebrationMessage: StateFlow<String?> = _missionCelebrationMessage.asStateFlow()
 
+  // ADS BETWEEN MISSIONS
+  private val _currentInterstitialAd = MutableStateFlow<com.example.model.MissionAd?>(null)
+  val currentInterstitialAd: StateFlow<com.example.model.MissionAd?> = _currentInterstitialAd.asStateFlow()
+  private var pendingAdAction: (() -> Unit)? = null
+
   // RAILWAY SPEED SIGNS (SLOW DOWN & SPEED UP)
   private val _activeRailwaySign = MutableStateFlow<com.example.model.RailwaySign?>(null)
   val activeRailwaySign: StateFlow<com.example.model.RailwaySign?> = _activeRailwaySign.asStateFlow()
@@ -178,6 +196,14 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
   }
 
   fun setSpeedNotch(notch: SpeedNotch) {
+    if (_isWrecked.value) {
+      if (notch != SpeedNotch.STOP) {
+        showRewardToast("⚠️ Train is derailed! Call the rescue crane or tow to station to rerail.")
+        TrainAudio.playCautionDing()
+        vibrate(25)
+      }
+      return
+    }
     if (_speedNotch.value != notch) {
       _speedNotch.value = notch
       if (notch == SpeedNotch.STOP) {
@@ -261,8 +287,46 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
     vibrate(25)
   }
 
-  // SPECIAL DELIVERY MISSIONS
+  // SPECIAL DELIVERY MISSIONS & ADS BETWEEN MISSIONS
+  fun showAdBetweenMissions(onFinish: (() -> Unit)? = null) {
+    pendingAdAction = onFinish
+    _currentInterstitialAd.value = com.example.model.MissionAdCatalog.getNextAd()
+    TrainAudio.playAdChime()
+    vibrate(25)
+  }
+
+  fun dismissInterstitialAd(rewardBonus: Boolean = true) {
+    val ad = _currentInterstitialAd.value
+    _currentInterstitialAd.value = null
+    if (rewardBonus && ad != null) {
+      viewModelScope.launch {
+        repository.addTicketsAndStars(ad.rewardTickets, 0)
+        showRewardToast("🎁 +${ad.rewardTickets} Golden Tickets from ${ad.title}!")
+        TrainAudio.playRewardFanfare()
+        vibrate(40)
+      }
+    }
+    pendingAdAction?.invoke()
+    pendingAdAction = null
+  }
+
+  fun watchSponsorAd() {
+    showAdBetweenMissions()
+  }
+
   fun startMission(mission: com.example.model.SpecialDeliveryMission) {
+    val wasCompleted = _missionState.value == com.example.model.MissionState.COMPLETED
+    if (wasCompleted) {
+      // Show interstitial ad between missions when embarking on a new delivery!
+      showAdBetweenMissions {
+        launchMissionInternal(mission)
+      }
+    } else {
+      launchMissionInternal(mission)
+    }
+  }
+
+  private fun launchMissionInternal(mission: com.example.model.SpecialDeliveryMission) {
     _activeMission.value = mission
     _missionState.value = com.example.model.MissionState.PICKUP_READY
     _missionTimeRemainingSec.value = mission.timeLimitSec
@@ -300,6 +364,8 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
 
   fun dismissMissionCelebration() {
     _missionCelebrationMessage.value = null
+    // Automatically trigger interstitial ad between missions when collecting rewards!
+    showAdBetweenMissions()
   }
 
   fun buyAndEquipEngine(engineId: String, cost: Int) {
@@ -343,8 +409,8 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
   }
 
   private fun updateTrainPhysics(dt: Float) {
-    if (_isPaused.value) {
-      return // Paused!
+    if (_isPaused.value || _isWrecked.value) {
+      return // Paused or Wrecked!
     }
 
     val world = _currentWorld.value
@@ -422,16 +488,60 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
     val isCurved = segment.curvature != TrackCurvature.STRAIGHT
     val isSteepDownhill = segment.slope == TrackSlope.DOWNHILL_STEEP
 
-    if (absSpeed > maxSafe || (isSteepDownhill && absSpeed > 36f)) {
+    // Critical speed threshold for wreck / derailment
+    val criticalThreshold = when {
+      segment.curvature == TrackCurvature.CURVE_SHARP_LEFT || segment.curvature == TrackCurvature.CURVE_SHARP_RIGHT -> 36f
+      segment.curvature == TrackCurvature.CURVE_GENTLE_LEFT || segment.curvature == TrackCurvature.CURVE_GENTLE_RIGHT -> 48f
+      isSteepDownhill -> 52f
+      else -> 58f
+    }
+
+    if (absSpeed >= criticalThreshold) {
       safeCurveEvaluated = false
-      if (_cautionMessage.value == null) {
-        _cautionMessage.value = if (isSteepDownhill) {
-          "⚠️ Steep Downhill! Slow down for safety!"
-        } else {
-          "⚠️ Sharp Curve Ahead! Slow down!"
+      val excess = absSpeed - criticalThreshold
+      val accumulationRate = 0.9f + (excess / 5f)
+      overspeedDangerAccumulator += dt * accumulationRate
+      val dLevel = (overspeedDangerAccumulator / 1.0f).coerceIn(0f, 1f)
+      _dangerLevel.value = dLevel
+
+      if (dLevel > 0.35f) {
+        hadHighDangerCloseCall = true
+      }
+
+      val secondsLeft = ((1f - dLevel) * 1.5f).coerceAtLeast(0.1f)
+      _cautionMessage.value = "🚨 SPEED TOO HIGH (${"%.0f".format(absSpeed)} MPH)! DERAILMENT IN ${"%.1f".format(secondsLeft)}s!"
+
+      if (overspeedDangerAccumulator >= 1.0f) {
+        triggerWreck(
+          speedMph = absSpeed,
+          maxSafe = maxSafe,
+          segment = segment,
+          world = world
+        )
+        return
+      }
+    } else {
+      if (overspeedDangerAccumulator > 0f) {
+        overspeedDangerAccumulator = (overspeedDangerAccumulator - dt * 2.2f).coerceAtLeast(0f)
+        _dangerLevel.value = (overspeedDangerAccumulator / 1.0f).coerceIn(0f, 1f)
+        if (overspeedDangerAccumulator == 0f && hadHighDangerCloseCall) {
+          hadHighDangerCloseCall = false
+          showRewardToast("😅 PHEW! Emergency braking prevented a derailment! Good save!")
+          TrainAudio.playWhistle()
         }
-        TrainAudio.playCautionDing()
-        vibrate(30)
+      }
+
+      if (absSpeed > maxSafe || (isSteepDownhill && absSpeed > 36f)) {
+        safeCurveEvaluated = false
+        if (_cautionMessage.value == null || _cautionMessage.value?.startsWith("🚨") == true) {
+          _cautionMessage.value = if (isSteepDownhill) {
+            "⚠️ Steep Downhill! Slow down for safety!"
+          } else {
+            "⚠️ Sharp Curve Ahead! Slow down!"
+          }
+          TrainAudio.playCautionDing()
+          vibrate(30)
+        }
 
         // Track incident for active special delivery mission
         val currentMission = _activeMission.value
@@ -445,17 +555,17 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
             showRewardToast("⚠️ Cargo Shaken! Incident $newIncidents / ${currentMission.maxIncidents}")
           }
         }
-      }
-    } else {
-      // Safe navigation reward
-      if ((isCurved || isSteepDownhill) && absSpeed > 10f && !safeCurveEvaluated) {
-        safeCurveEvaluated = true
-        showRewardToast("🌟 Master Conductor! Smooth & Safe Speed! +10 Tickets")
-        viewModelScope.launch {
-          repository.addTicketsAndStars(tickets = 10, stars = 0)
+      } else {
+        // Safe navigation reward
+        if ((isCurved || isSteepDownhill) && absSpeed > 10f && !safeCurveEvaluated) {
+          safeCurveEvaluated = true
+          showRewardToast("🌟 Master Conductor! Smooth & Safe Speed! +10 Tickets")
+          viewModelScope.launch {
+            repository.addTicketsAndStars(tickets = 10, stars = 0)
+          }
         }
+        _cautionMessage.value = null
       }
-      _cautionMessage.value = null
     }
 
     // Railway Signs Detection (SLOW DOWN & SPEED UP)
@@ -597,5 +707,158 @@ class TrainGameViewModel(application: Application) : AndroidViewModel(applicatio
         vibrator?.vibrate(ms)
       }
     } catch (_: Throwable) {}
+  }
+
+  private fun vibrateCrash() {
+    try {
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val timings = longArrayOf(0, 160, 90, 260, 90, 420)
+        val amplitudes = intArrayOf(0, 255, 0, 255, 0, 255)
+        vibrator?.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+      } else {
+        @Suppress("DEPRECATION")
+        vibrator?.vibrate(longArrayOf(0, 160, 90, 260, 90, 420), -1)
+      }
+    } catch (_: Throwable) {}
+  }
+
+  fun triggerWreck(
+    speedMph: Float,
+    maxSafe: Float,
+    segment: TrackSegment,
+    world: LandscapeWorld
+  ) {
+    if (_isWrecked.value) return
+    _isWrecked.value = true
+    _actualSpeedMph.value = 0f
+    _speedNotch.value = SpeedNotch.STOP
+    overspeedDangerAccumulator = 0f
+    _dangerLevel.value = 0f
+    hadHighDangerCloseCall = false
+    _cautionMessage.value = "💥 TRAIN DERAILMENT! Locomotive jumped the rails!"
+
+    val isCurve = segment.curvature != TrackCurvature.STRAIGHT
+    val isDownhill = segment.slope == TrackSlope.DOWNHILL_STEEP
+
+    val (title, detail, tip) = when {
+      segment.curvature == TrackCurvature.CURVE_SHARP_LEFT || segment.curvature == TrackCurvature.CURVE_SHARP_RIGHT -> {
+        Triple(
+          "💥 SHARP CURVE DERAILMENT!",
+          "Entering ${segment.curvature.label} at ${"%.1f".format(speedMph)} MPH exceeded the track's ${"%.0f".format(maxSafe)} MPH limit! Centrifugal inertia snapped the wheel flange contact and threw the train off the tracks!",
+          "Keep your speed in Notch 1 (16 MPH) or apply the STOP brake before hitting sharp turns!"
+        )
+      }
+      isDownhill -> {
+        Triple(
+          "💥 RUNAWAY DOWNHILL WRECK!",
+          "Gravity accelerated your locomotive to a runaway speed of ${"%.1f".format(speedMph)} MPH down ${segment.slope.label}! The train could not hold the grade and rolled off the roadbed!",
+          "On steep downhills, switch to STOP or REV to gently brake and control your train's descent!"
+        )
+      }
+      isCurve -> {
+        Triple(
+          "💥 EXCESSIVE CURVE SPEED WRECK!",
+          "Cruising at ${"%.1f".format(speedMph)} MPH around ${segment.curvature.label} overcame rail friction, sliding the locomotive into the scenic embankment!",
+          "Check curve warning signs early and ease up on the throttle!"
+        )
+      }
+      else -> {
+        Triple(
+          "💥 RUNAWAY OVERSPEED WRECK!",
+          "Speed exceeded the track structural limit of 55 MPH at ${"%.1f".format(speedMph)} MPH! The locomotive jumped the steel rails!",
+          "Always monitor your speedometer and maintain safe cruising speed!"
+        )
+      }
+    }
+
+    val wreckEvent = com.example.model.TrainWreckEvent(
+      speedMph = speedMph,
+      maxSafeSpeedMph = maxSafe,
+      reasonTitle = title,
+      incidentDetail = detail,
+      safetyTip = tip,
+      world = world,
+      trackSlope = segment.slope,
+      trackCurvature = segment.curvature
+    )
+    _currentWreck.value = wreckEvent
+
+    // Audio effects
+    TrainAudio.playDerailmentScreech()
+    viewModelScope.launch {
+      delay(380)
+      TrainAudio.playCrashWreck()
+    }
+
+    // Heavy crash haptic rumble
+    vibrateCrash()
+
+    // Handle mission failure if active
+    val currentMission = _activeMission.value
+    if (currentMission != null && _missionState.value == com.example.model.MissionState.DELIVERING) {
+      _missionState.value = com.example.model.MissionState.FAILED
+      _missionIncidents.value += 1
+      showRewardToast("💥 Cargo damaged in train derailment! Special Delivery failed.")
+    } else {
+      showRewardToast("🚨 TRAIN DERAILMENT! Speed was too high!")
+    }
+  }
+
+  fun rerailTrain() {
+    _isWrecked.value = false
+    _currentWreck.value = null
+    _dangerLevel.value = 0f
+    overspeedDangerAccumulator = 0f
+    hadHighDangerCloseCall = false
+    _actualSpeedMph.value = 0f
+    _speedNotch.value = SpeedNotch.STOP
+    _cautionMessage.value = null
+
+    TrainAudio.playCraneClang()
+    viewModelScope.launch {
+      delay(300)
+      TrainAudio.playWhistle()
+    }
+    vibrate(40)
+    showRewardToast("🏗️ Breakdown Crane rerailed your locomotive! Safe to proceed!")
+  }
+
+  fun towToNearestStation() {
+    val world = _currentWorld.value
+    val station = TrackWorldData.allStations.firstOrNull { it.world == world }
+    if (station != null) {
+      _trackPosition.value = station.trackPosition
+    }
+    _isWrecked.value = false
+    _currentWreck.value = null
+    _dangerLevel.value = 0f
+    overspeedDangerAccumulator = 0f
+    hadHighDangerCloseCall = false
+    _actualSpeedMph.value = 0f
+    _speedNotch.value = SpeedNotch.STOP
+    _cautionMessage.value = null
+
+    TrainAudio.playCraneClang()
+    viewModelScope.launch {
+      delay(250)
+      TrainAudio.playBell()
+    }
+    vibrate(40)
+    val stName = station?.name ?: "Station"
+    showRewardToast("🚉 Towed safely to $stName platform! Safety inspection complete!")
+  }
+
+  fun simulateSpeedWreck() {
+    val world = _currentWorld.value
+    val pos = _trackPosition.value
+    val segment = TrackWorldData.getSegmentAt(world, pos)
+    val maxSafe = segment.curvature.maxSafeSpeed
+    val simulatedSpeed = (maxSafe + 18f).coerceAtLeast(46f)
+    triggerWreck(
+      speedMph = simulatedSpeed,
+      maxSafe = maxSafe,
+      segment = segment,
+      world = world
+    )
   }
 }

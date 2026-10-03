@@ -53,10 +53,159 @@ object TrackWorldData {
   )
 
   val availableSmokes = listOf(
-    SmokeEffect("classic_puffs", "Cloud Puffs", "☁️", 0),
-    SmokeEffect("heart_puffs", "Loving Hearts", "💖", 60),
-    SmokeEffect("star_puffs", "Sparkling Stars", "⭐", 90),
-    SmokeEffect("rainbow_puffs", "Rainbow Mist", "🌈", 140)
+    // SPECIAL TYPES
+    SmokeEffect(
+      id = "classic_puffs",
+      name = "Classic White Clouds",
+      iconEmoji = "☁️",
+      cost = 0,
+      type = SmokeType.PUFFS,
+      primaryColor = Color.White,
+      secondaryColor = Color(0xFFECEFF1),
+      description = "Fluffy white puffs straight from the locomotive boiler"
+    ),
+    SmokeEffect(
+      id = "soap_bubbles",
+      name = "Iridescent Soap Bubbles",
+      iconEmoji = "🫧",
+      cost = 45,
+      type = SmokeType.BUBBLES,
+      primaryColor = Color(0xFF80DEEA),
+      secondaryColor = Color(0xFFF48FB1),
+      description = "Gently floating glassy bubbles with iridescent rainbow sheen"
+    ),
+    SmokeEffect(
+      id = "heart_puffs",
+      name = "Loving Hearts",
+      iconEmoji = "💖",
+      cost = 60,
+      type = SmokeType.HEARTS,
+      primaryColor = Color(0xFFFF4081),
+      secondaryColor = Color(0xFFF8BBD0),
+      description = "Float sweet pink love hearts into the sky as you drive"
+    ),
+    SmokeEffect(
+      id = "star_puffs",
+      name = "Sparkling Stars",
+      iconEmoji = "⭐",
+      cost = 70,
+      type = SmokeType.STARS,
+      primaryColor = Color(0xFFFFD54F),
+      secondaryColor = Color(0xFFFFE082),
+      description = "Twinkling golden starbursts that light up the route"
+    ),
+    SmokeEffect(
+      id = "music_notes",
+      name = "Melody Whistle Notes",
+      iconEmoji = "🎵",
+      cost = 80,
+      type = SmokeType.MUSIC,
+      primaryColor = Color(0xFF26C6DA),
+      secondaryColor = Color(0xFF80CBC4),
+      description = "Whimsical musical notes that dance in tune with your whistle"
+    ),
+    SmokeEffect(
+      id = "magic_sparkles",
+      name = "Fairy Dust Sparkles",
+      iconEmoji = "✨",
+      cost = 90,
+      type = SmokeType.SPARKLES,
+      primaryColor = Color(0xFFE040FB),
+      secondaryColor = Color(0xFF80DEEA),
+      description = "Glistening magical diamond sparkles drifting on the breeze"
+    ),
+    SmokeEffect(
+      id = "rainbow_puffs",
+      name = "Rainbow Mist",
+      iconEmoji = "🌈",
+      cost = 110,
+      type = SmokeType.RAINBOW,
+      primaryColor = Color(0xFFFF5252),
+      secondaryColor = Color(0xFF448AFF),
+      description = "A colorful swirling trail of multi-spectrum rainbow clouds"
+    ),
+    SmokeEffect(
+      id = "fire_smoke",
+      name = "Volcano Flame Embers",
+      iconEmoji = "🔥",
+      cost = 130,
+      type = SmokeType.FIRE,
+      primaryColor = Color(0xFFFF3D00),
+      secondaryColor = Color(0xFFFFD600),
+      description = "Blazing fiery steam filled with glowing volcanic sparks"
+    ),
+
+    // COLOR OPTIONS
+    SmokeEffect(
+      id = "smoke_blue",
+      name = "Ocean Azure Vapor",
+      iconEmoji = "🔵",
+      cost = 35,
+      type = SmokeType.PUFFS,
+      primaryColor = Color(0xFF29B6F6),
+      secondaryColor = Color(0xFF0288D1),
+      description = "Bright ocean-sky blue billowing vapor"
+    ),
+    SmokeEffect(
+      id = "smoke_pink",
+      name = "Bubblegum Pink Mist",
+      iconEmoji = "🌸",
+      cost = 40,
+      type = SmokeType.PUFFS,
+      primaryColor = Color(0xFFF06292),
+      secondaryColor = Color(0xFFD81B60),
+      description = "Sweet cotton-candy pink steam clouds"
+    ),
+    SmokeEffect(
+      id = "smoke_green",
+      name = "Emerald Forest Steam",
+      iconEmoji = "🟢",
+      cost = 40,
+      type = SmokeType.PUFFS,
+      primaryColor = Color(0xFF66BB6A),
+      secondaryColor = Color(0xFF2E7D32),
+      description = "Vibrant emerald green puffs of forest mist"
+    ),
+    SmokeEffect(
+      id = "smoke_purple",
+      name = "Cosmic Violet Vapor",
+      iconEmoji = "🟣",
+      cost = 45,
+      type = SmokeType.PUFFS,
+      primaryColor = Color(0xFFAB47BC),
+      secondaryColor = Color(0xFF6A1B9A),
+      description = "Mystical cosmic purple vapor from outer space"
+    ),
+    SmokeEffect(
+      id = "smoke_gold",
+      name = "Golden Amber Clouds",
+      iconEmoji = "🟡",
+      cost = 50,
+      type = SmokeType.PUFFS,
+      primaryColor = Color(0xFFFFCA28),
+      secondaryColor = Color(0xFFFF8F00),
+      description = "Rich golden sunshine steam with glowing warm tones"
+    ),
+    SmokeEffect(
+      id = "smoke_red",
+      name = "Ruby Flame Steam",
+      iconEmoji = "🔴",
+      cost = 50,
+      type = SmokeType.PUFFS,
+      primaryColor = Color(0xFFEF5350),
+      secondaryColor = Color(0xFFC62828),
+      description = "Intense fiery red smoke with locomotive power"
+    ),
+    SmokeEffect(
+      id = "smoke_coal",
+      name = "Steampunk Charcoal",
+      iconEmoji = "🖤",
+      cost = 30,
+      type = SmokeType.PUFFS,
+      primaryColor = Color(0xFF455A64),
+      secondaryColor = Color(0xFF263238),
+      description = "Authentic heavy charcoal locomotive coal smoke"
+    )
   )
 
   val allSecrets = listOf(

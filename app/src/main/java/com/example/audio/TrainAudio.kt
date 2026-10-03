@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.sin
 import kotlin.random.Random
@@ -164,6 +165,117 @@ object TrainAudio {
           val envelope = (1.0 - t / durationSec) * 0.5
           val sampleVal = sin(2.0 * PI * f * t) * envelope * 18000.0
           buffer[i] = sampleVal.toInt().coerceIn(-32768, 32767).toShort()
+        }
+
+        playRawPcm(buffer)
+      } catch (_: Throwable) {}
+    }
+  }
+
+  fun playAdChime() {
+    scope.launch {
+      try {
+        val durationSec = 0.5f
+        val numSamples = (sampleRate * durationSec).toInt()
+        val buffer = ShortArray(numSamples)
+
+        val f1 = 523.25 // C5
+        val f2 = 659.25 // E5
+        val f3 = 783.99 // G5
+        val f4 = 1046.50 // C6
+
+        for (i in 0 until numSamples) {
+          val t = i.toDouble() / sampleRate
+          val envelope = exp(-t * 6.0)
+          val sampleVal = (sin(2.0 * PI * f1 * t) * 0.25 +
+              sin(2.0 * PI * f2 * t) * 0.25 +
+              sin(2.0 * PI * f3 * t) * 0.25 +
+              sin(2.0 * PI * f4 * t) * 0.25) * envelope * 24000.0
+          buffer[i] = sampleVal.toInt().coerceIn(-32768, 32767).toShort()
+        }
+
+        playRawPcm(buffer)
+      } catch (_: Throwable) {}
+    }
+  }
+
+  fun playDerailmentScreech() {
+    scope.launch {
+      try {
+        val durationSec = 0.95f
+        val numSamples = (sampleRate * durationSec).toInt()
+        val buffer = ShortArray(numSamples)
+
+        // Screeching high-pitched dissonant metallic friction and rumble
+        for (i in 0 until numSamples) {
+          val t = i.toDouble() / sampleRate
+          val envelope = when {
+            t < 0.1 -> t / 0.1
+            t > 0.7 -> (durationSec - t) / 0.25
+            else -> 1.0
+          }
+          val f1 = 1800.0 + sin(t * 70.0) * 450.0
+          val f2 = 2340.0 + sin(t * 90.0) * 600.0
+          val f3 = 920.0 + cos(t * 50.0) * 200.0
+          val noise = (Random.nextDouble() - 0.5) * 1.8
+          val sampleVal = (sin(2.0 * PI * f1 * t) * 0.35 +
+              sin(2.0 * PI * f2 * t) * 0.25 +
+              sin(2.0 * PI * f3 * t) * 0.20 +
+              noise * 0.45) * envelope * 27000.0
+          buffer[i] = sampleVal.toInt().coerceIn(-32768, 32767).toShort()
+        }
+
+        playRawPcm(buffer)
+      } catch (_: Throwable) {}
+    }
+  }
+
+  fun playCrashWreck() {
+    scope.launch {
+      try {
+        val durationSec = 1.1f
+        val numSamples = (sampleRate * durationSec).toInt()
+        val buffer = ShortArray(numSamples)
+
+        // Heavy low-frequency metal impact thump + noisy crunch + steam escape
+        for (i in 0 until numSamples) {
+          val t = i.toDouble() / sampleRate
+          val impactEnv = exp(-t * 14.0)
+          val steamEnv = if (t > 0.15) exp(-(t - 0.15) * 3.5) else 0.0
+
+          val lowThud = sin(2.0 * PI * (65.0 - t * 25.0) * t) * 0.8
+          val midCrunch = sin(2.0 * PI * 180.0 * t) * 0.4
+          val metalNoise = (Random.nextDouble() - 0.5) * 2.2
+          val steamHiss = (Random.nextDouble() - 0.5) * 1.4
+
+          val sampleVal = ((lowThud + midCrunch + metalNoise * 0.6) * impactEnv +
+              steamHiss * steamEnv * 0.7) * 29000.0
+          buffer[i] = sampleVal.toInt().coerceIn(-32768, 32767).toShort()
+        }
+
+        playRawPcm(buffer)
+      } catch (_: Throwable) {}
+    }
+  }
+
+  fun playCraneClang() {
+    scope.launch {
+      try {
+        val durationSec = 0.75f
+        val numSamples = (sampleRate * durationSec).toInt()
+        val buffer = ShortArray(numSamples)
+
+        val f1 = 880.0
+        val f2 = 1320.0
+        val f3 = 1760.0
+
+        for (i in 0 until numSamples) {
+          val t = i.toDouble() / sampleRate
+          val envelope = exp(-t * 6.5)
+          val metalRing = (sin(2.0 * PI * f1 * t) * 0.5 +
+              sin(2.0 * PI * f2 * t) * 0.35 +
+              sin(2.0 * PI * f3 * t) * 0.25) * envelope * 26000.0
+          buffer[i] = metalRing.toInt().coerceIn(-32768, 32767).toShort()
         }
 
         playRawPcm(buffer)
